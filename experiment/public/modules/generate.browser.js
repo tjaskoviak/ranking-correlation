@@ -113,15 +113,14 @@ exports.getCorrelatedData = function (params) {
       	sdratio = params.sdratio
       if(params.outn !== null) {
       	outn = params.outn
-        console.log("outn", outn)
-        console.log("params.outn", params.outn)
+      } else {
+        outn = 0
       }
       if(params.outsd)
       	outsd = params.outsd
       if(params.readjust)
       	readjust = params.readjust
     }
-    console.log(params);
     if(debug) {console.log("r input is " + r)}
     
 	var rsign = r       // record the raw r
