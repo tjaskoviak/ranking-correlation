@@ -481,8 +481,8 @@
     d3.select('#vis-left').selectAll('svg').remove();
     d3.select('#vis-right').selectAll('svg').remove();
     // create datasets
-	  var data1 = gen.dataviz( gen.getCorrelatedData({ r: m.sign * rL, n: 100, extent: 300 }) )
-      , data2 = gen.dataviz( gen.getCorrelatedData({ r: m.sign * rR, n: 100, extent: 300 }) );
+	  var data1 = gen.dataviz( gen.getCorrelatedData({ r: m.sign * rL, n: 100, extent: 300, outn: 5, outsd: 3 }) )
+      , data2 = gen.dataviz( gen.getCorrelatedData({ r: m.sign * rR, n: 100, extent: 300, outn: 0, outsd: 0 }) );
     // create vis parameters
     var paramsLeft = {
         target: "vis-left", 

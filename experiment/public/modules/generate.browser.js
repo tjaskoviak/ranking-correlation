@@ -17,6 +17,9 @@ var r      = parseFloat(process.argv[2]) || 0.2
   , extent = 400
   , mratio = 0.5
   , sdratio = 0.2
+  , outn = 0	// Specify the number of outliers
+  , outsd = 1	// Specify number of standard deviations the outliers should be at
+  , readjust = false
   
   debug = false
   
@@ -108,23 +111,46 @@ exports.getCorrelatedData = function (params) {
     	mratio = params.mratio
       if(params.sdratio)
       	sdratio = params.sdratio
+      if(params.outn)
+      	outn = params.outn
+      if(params.outsd)
+      	outsd = params.outsd
+      if(params.readjust)
+      	readjust = params.readjust
     }
+    console.log(params);
     if(debug) {console.log("r input is " + r)}
-    var rsign = r       // record the raw r
-        r = Math.abs(r) // in case for accident
+    
+	var rsign = r       // record the raw r
+    r = Math.abs(r) // in case for accident
+
     var flag = 0,
     	k = [];
     
     do {
     k = generate();
     k = standardize(k);
+    // Two functions added to create and move outliers
+    // to their appropriate location
+    var outtemp = outn;
+    outn = 0;
     k = adjust(k);
+    k = rotOut(k, 45, 'clockwise');
+    outn = outtemp;
+    k = generateOutliers(k);
+    k = relocateOutliers(k);
+    k = rotOut(k, 45, 'counterclockwise');
+    if(readjust)
+    	k = adjust(k);
     //k = normalize(k)
     k = standardize(k);
     k = scale(k);
     flag = check(k);
     } while ( flag == -1 )
-    	
+	
+	console.log("Total corr: " + corr(k.X, k.Y));
+    console.log(corr(k.X.slice(0, n - outn), k.Y.slice(0, n - outn)));
+
     if (rsign < 0)
     	for(var i in k.Y)
     		k.Y[i] = extent - k.Y[i] 
@@ -133,13 +159,16 @@ exports.getCorrelatedData = function (params) {
     return k
 }
 
-function nextGauss() {
+// Modified to include 'max'
+// Max is the upper and lower bound for the generation
+// This allows for specifying how dense the outliers are
+function nextGauss(max) {
     var x = gas()
-    while (x < -2 || x > 2)
+    while (x < (0 - max) || x > max)
 	x = gas()
 
     var y = gas()
-    while (y < -2 || y > 2)
+    while (y < (0 - max) || y > max)
 	y = gas()
 
     return [x,y]
@@ -150,7 +179,7 @@ function generate() {
     var yarr = []
 
     for (var i = 0; i < n; i++) {
-	var one = nextGauss();
+	var one = nextGauss(2);
 
 	xarr.push(one[0])
 	yarr.push(one[1])
@@ -162,6 +191,33 @@ function generate() {
     }
 }
 
+
+// Generates outliers similar to the 'generate()' function
+// Works on the back end of the list when generating
+// All outliers are the last outn coordinates
+function generateOutliers(d) {
+	for (var i = n; i >= (n - outn); i--){
+		var one = nextGauss(0.1);
+
+		d.X[i] = one[0]
+		d.Y[i] = one[1]
+	}
+
+	return d
+}
+
+// Moves the outlier cluster to their specified center
+// The outliers are the last outn coordinates
+function relocateOutliers(d) {
+	var sdtemp = sdc(d.Y);
+	console.log(sdtemp)
+	for (var i = n; i >= (n - outn); i--) {
+		d.Y[i] = d.Y[i] + (sdtemp * outsd);
+	}
+
+	return d
+}
+
 function calculateLambda(d) {
     var rz = corr(d.X, d.Y), rz2 = Math.pow(rz, 2)
     , a = (2 * r * r - 2 * r * r * rz - 1 + 2 * rz - rz2)
@@ -170,13 +226,27 @@ function calculateLambda(d) {
     return (-1.0 * b - Math.sqrt(b * b - 4 * a * c)) / (2 * a)
 }
 
+// Modified such that the calculation is done normally as a test,
+// Then the values are checked to see it they fit a range:
+// 		under 0.0000001 of r or if lamda is under 1
+// If this is true then increase lamda and try again
+// Standardize() and scale() are called for better accuracy
 function adjust(d) {
     var l = calculateLambda(d);
-    for (var i = 0; i < n; i++) {
-	d.Y[i] =
-	    (l * d.X[i] + (1 - l) * d.Y[i])
-		/ Math.sqrt(l * l + Math.pow(1 - l, 2))
-    }
+    var tempdy = d.Y.slice(0);	// A test value for d.Y
+    var tempd = {X: d.X.slice(0), Y: d.Y.slice(0)}; // A test value for d
+    do {
+	    for (var i = 0; i < (n - outn); i++) {
+		tempdy[i] =
+		    (l * d.X[i] + (1 - l) * d.Y[i])
+			/ Math.sqrt(l * l + Math.pow(1 - l, 2))
+	    }
+	    l = l + 0.0001;	// Increase lamda for the next calculation
+	    tempd.Y = tempdy.slice(0) // Set Y of the test d object
+	    tempd = standardize(tempd) // Standardize the test object
+	    tempd = scale(tempd)	// Scale the test object
+	} while (corr(tempd.X, tempd.Y) < (r - 0.0000001) && (l < 0.99999)) // Make sure the object is within range
+	d.Y = tempdy;	// Put the test values int the d object
     return d
 }
 
@@ -217,27 +287,50 @@ function scale(d) {
 
 // rotate the whole dataset dg degree
 // ws: 'counterclockwise' or 'clockwise' 
-
 function rot(d, dg, ws) {  
             var n = d.length
-			, dnew = []
+      , dnew = []
+            , radians = dg * (Math.PI / 180)
+            , negative = 1
+            
+            if (ws == 'counterclockwise')
+              negative = -1
+              
+      for (var i = 0 ; i < n ; i++){
+        // var rp = rotate([[d[i][0]],[d[i][1]]], dg, ws)
+        // dnew.push([rp[0], rp[1]]) 
+        // I don't know what's happenning here. 
+        // I made these work and then I broke them and cannot fix within several hours...
+        // I have to use my own codes...
+        var x = d[i][0] * Math.cos(radians) + negative * d[i][1] * Math.sin(radians)
+          , y = negative * (-1) * d[i][0] * Math.sin(radians) + d[i][1] * Math.cos(radians)
+        dnew.push([x, y])
+      }
+            
+    return dnew;
+ }
+
+// similar to the rotation function but designed with the outlier dataset
+// rotates the entire dataset as an object
+function rotOut(d, dg, ws) {  
+            var dnew = {X: d.X.slice(0), Y: d.Y.slice(0)}
             , radians = dg * (Math.PI / 180)
             , negative = 1
             
             if (ws == 'counterclockwise')
             	negative = -1
-            	
 			for (var i = 0 ; i < n ; i++){
 				// var rp = rotate([[d[i][0]],[d[i][1]]], dg, ws)
 				// dnew.push([rp[0], rp[1]]) 
 				// I don't know what's happenning here. 
 				// I made these work and then I broke them and cannot fix within several hours...
 				// I have to use my own codes...
-				var x = d[i][0] * Math.cos(radians) + negative * d[i][1] * Math.sin(radians)
-				  , y = negative * (-1) * d[i][0] * Math.sin(radians) + d[i][1] * Math.cos(radians)
-				dnew.push([x, y])
+				var x = d.X[i] * Math.cos(radians) + negative * d.Y[i] * Math.sin(radians)
+				  , y = negative * (-1) * d.X[i] * Math.sin(radians) + d.Y[i] * Math.cos(radians)
+				dnew.X[i] = x;
+				dnew.Y[i] = y;
 			}
-            
+
     return dnew;
  }
 
@@ -337,8 +430,12 @@ function getPercentage(d){
 
 function check(d){
 	// It is possible that y is NaN because of unknown reasons...
-    for (var i = 0; i < n; i++) {
+    for (var i = 0; i < (n - outn); i++) {
         if (d.X[i] < 0 || d.X[i] > extent || d.Y[i] < 0 || d.Y[i] > extent || isNaN(d.Y[i]))
+	        return -1
+    }
+    for (var i = 0; i < n; i++) {
+        if (d.X[i] < 0 || d.X[i] > extent || d.Y[i] < 0|| isNaN(d.Y[i]))
 	        return -1
     }
     // fm: I thought these can avoid y = NaN but I was wrong
