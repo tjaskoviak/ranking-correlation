@@ -2,13 +2,6 @@ var j2c    = require('json2csv')
   , fs     = require('fs')
   , file   = process.argv[2]
   , _      = require('underscore')
-  , fields = [ // EDIT THESE
-      'postId',
-      'trialName',
-      'direction',
-      'rtarget',
-      'rvariable'
-    ]
   , data
 
 fs.readFile(file, 'utf8', function (err, data) {
@@ -16,17 +9,23 @@ fs.readFile(file, 'utf8', function (err, data) {
 
   data = JSON.parse(data)
 
-  // filters any undefined data (it makes R scripting easier)
-  data = filterUndefined(data)
+  console.log(data.length)
 
-  // use 'debug' for your workerId when testing experiments, 
-  //   comment out if you want to analyze data from yourself
-  data = filterDebug(data) 
+  _.each(data, function(row) {
+    if(row.runs)
+    {
+      _.each(row.runs, function(run) {
+        console.log(run.rbase)
+        _.each(run.trials, function(trial) {
+            console.log(trial.correctChoice)
+        })
+      })
+    }
+  })
 
-  //filter for specific keys here
-  //data = _.filter(data, function(d) { return _.contains([''], d.key); })
+  console.log(data.length)
 
-  convert( data )
+//  convert( data )
 })
 
 function convert(d) {

@@ -116,15 +116,39 @@
   // allow violate signs or not
   data.allowViolate = true;
   // make r-value condition choice
-  data.rcondition = "five"; // three, four, five
+  data.rcondition = "eighthigh"; // three, four, five
 
   // define practice trials
-  if(data.rcondition === 'three')
-    m.runs = [ { rbase: 0.6, dirFlag: -1 }, { rbase: 0.3, dirFlag: 1 } ];
-  else if (data.rcondition === 'five')
-    m.runs = [ { rbase: 0.8, dirFlag: -1 }, { rbase: 0.5, dirFlag: 1 } ];
-  else if (data.rcondition === 'four')
-    m.runs = [ { rbase: 0.7, dirFlag: -1 }, { rbase: 0.4, dirFlag: 1 } ];
+  if(data.rcondition === 'eightlow')
+    m.runs = [ 
+      { rbase: 0.8, dirFlag: 1, outL: false, outH: false },
+      { rbase: 0.8, dirFlag: 1, outL: false, outH: false } 
+    ];
+  else if (data.rcondition === 'sixlow')
+    m.runs = [ 
+      { rbase: 0.6, dirFlag: 1, outL: false, outH: false },
+      { rbase: 0.6, dirFlag: 1, outL: false, outH: false } 
+    ];
+  else if (data.rcondition === 'fourlow')
+    m.runs = [ 
+      { rbase: 0.4, dirFlag: 1, outL: false, outH: false },
+      { rbase: 0.4, dirFlag: 1, outL: false, outH: false } 
+    ];
+  else if (data.rcondition === 'eighthigh')
+    m.runs = [ 
+      { rbase: 0.8, dirFlag: -1, outL: false, outH: false },
+      { rbase: 0.8, dirFlag: -1, outL: false, outH: false } 
+    ];
+  else if (data.rcondition === 'sixhigh')
+    m.runs = [ 
+      { rbase: 0.6, dirFlag: -1, outL: false, outH: false },
+      { rbase: 0.6, dirFlag: -1, outL: false, outH: false } 
+    ];
+  else if (data.rcondition === 'fourhigh')
+    m.runs = [ 
+      { rbase: 0.4, dirFlag: -1, outL: false, outH: false },
+      { rbase: 0.4, dirFlag: -1, outL: false, outH: false } 
+    ];
 
   // add additional properties for experiment run
   m.runs.forEach(function(d) {
@@ -160,6 +184,8 @@
     data.direction  = data.dirFlag === 1 ? 'above' : 'below';
     data.trials     = [];
     data.JND        = null;
+    data.outH       = params.outH || false;
+    data.outL       = params.outL || false;
 
     // ct is short for "current trial". Store data here for each trial.
     m.ct = {}; 
@@ -467,8 +493,24 @@
     d3.select('#vis-left').selectAll('svg').remove();
     d3.select('#vis-right').selectAll('svg').remove();
     // create datasets
-	  var data1 = gen.getCorrelatedData({ r: m.sign * rL, n: 100, extent: 300, outn: 5, outsd: 3, readjust: true })
-      , data2 = gen.getCorrelatedData({ r: m.sign * rR, n: 100, extent: 300, outn:0, outsd: 4 });
+	  var data1
+      , data2;
+
+    var outdir = 3;
+    outdir = (Math.floor(Math.random() * 2) ? 3 : -3);
+
+      if((data.outH && rL > rR) || (data.outL && rR > rL)) {
+        data1 = gen.getCorrelatedData({ r: m.sign * rL, n: 100, extent: 300, outn: 5, outsd: outdir, readjust: true })
+        console.log("Left has outlier")
+      } else {
+        data1 = gen.getCorrelatedData({ r: m.sign * rL, n: 100, extent: 300, outn: 0 })
+      }
+      if((data.outH && rR > rL) || (data.outL && rL > rR)) {
+        data2 = gen.getCorrelatedData({ r: m.sign * rR, n: 100, extent: 300, outn: 5, outsd: outdir, readjust: true });
+        console.log("Right has outlier")
+      } else {
+        data2 = gen.getCorrelatedData({ r: m.sign * rR, n: 100, extent: 300, outn: 0 });
+      }
     // create vis parameters
     var paramsLeft = {
         target: "vis-left", 

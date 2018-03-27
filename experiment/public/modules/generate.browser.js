@@ -36,6 +36,9 @@ exports.decompress = function(d){
 }
 
 exports.compress = function(d){
+  console.log("D is: " + d);
+  console.log("D[0] is: " + d[0]);
+  console.log("D[1] is: " + d[1]);
   return d.map(function(d) {
 	 return compressPair(d[0], d[1])	
   })
@@ -113,8 +116,10 @@ exports.getCorrelatedData = function (params) {
       	sdratio = params.sdratio
       if(params.outn !== null) {
       	outn = params.outn
+        console.log("outn changed ", outn)
       } else {
         outn = 0
+        console.log("outn empty ", outn)
       }
       if(params.outsd)
       	outsd = params.outsd
@@ -150,8 +155,8 @@ exports.getCorrelatedData = function (params) {
     flag = check(k);
     } while ( flag == -1 )
 	
-	console.log("Total corr: " + corr(k.X, k.Y));
-    console.log(corr(k.X.slice(0, n - outn), k.Y.slice(0, n - outn)));
+    console.log("Total corr: " + corr(k.X, k.Y));
+    console.log("Center corr: " + corr(k.X.slice(0, n - outn), k.Y.slice(0, n - outn)));
 
     if (rsign < 0)
     	for(var i in k.Y)
@@ -199,7 +204,8 @@ function generate() {
 // All outliers are the last outn coordinates
 function generateOutliers(d) {
 	for (var i = n; i >= (n - outn); i--){
-		var one = nextGauss(0.1);
+		var one = nextGauss(0.5);
+		one[1] = one[1] / 2;
 
 		d.X[i] = one[0]
 		d.Y[i] = one[1]
