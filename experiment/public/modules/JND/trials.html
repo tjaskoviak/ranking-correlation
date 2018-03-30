@@ -87,7 +87,7 @@
   m.allowViolate = experimentr.data().allowViolate;
   // get rcondition
   var rcondition = experimentr.data().rcondition;
-  console.log(experimentr.data().rcondition);
+  //console.log(experimentr.data().rcondition);
 
   if(rcondition === 'eighthigh')
     m.runs = [ 
@@ -107,7 +107,7 @@
 
 
   // add additional properties for experiment run
-  console.log(m);
+  //console.log(m);
   m.runs.forEach(function(d) {
     d.startDelta = 0.1;
     d.deltaRight = 0.01;
