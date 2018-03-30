@@ -116,10 +116,10 @@ exports.getCorrelatedData = function (params) {
       	sdratio = params.sdratio
       if(params.outn !== null) {
       	outn = params.outn
-        console.log("outn changed ", outn)
+        //console.log("outn changed ", outn)
       } else {
         outn = 0
-        console.log("outn empty ", outn)
+        //console.log("outn empty ", outn)
       }
       if(params.outsd)
       	outsd = params.outsd
@@ -155,8 +155,8 @@ exports.getCorrelatedData = function (params) {
     flag = check(k);
     } while ( flag == -1 )
 	
-    console.log("Total corr: " + corr(k.X, k.Y));
-    console.log("Center corr: " + corr(k.X.slice(0, n - outn), k.Y.slice(0, n - outn)));
+    //console.log("Total corr: " + corr(k.X, k.Y));
+    //console.log("Center corr: " + corr(k.X.slice(0, n - outn), k.Y.slice(0, n - outn)));
 
     if (rsign < 0)
     	for(var i in k.Y)
