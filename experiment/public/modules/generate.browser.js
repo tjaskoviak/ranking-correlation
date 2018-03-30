@@ -36,9 +36,9 @@ exports.decompress = function(d){
 }
 
 exports.compress = function(d){
-  console.log("D is: " + d);
-  console.log("D[0] is: " + d[0]);
-  console.log("D[1] is: " + d[1]);
+  //console.log("D is: " + d);
+  //console.log("D[0] is: " + d[0]);
+  //console.log("D[1] is: " + d[1]);
   return d.map(function(d) {
 	 return compressPair(d[0], d[1])	
   })
@@ -218,7 +218,7 @@ function generateOutliers(d) {
 // The outliers are the last outn coordinates
 function relocateOutliers(d) {
 	var sdtemp = sdc(d.Y);
-	console.log(sdtemp)
+	//console.log(sdtemp)
 	for (var i = n; i >= (n - outn); i--) {
 		d.Y[i] = d.Y[i] + (sdtemp * outsd);
 	}
