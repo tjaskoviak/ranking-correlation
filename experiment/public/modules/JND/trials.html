@@ -465,13 +465,13 @@
 
       if((data.outH && rL > rR) || (data.outL && rR > rL)) {
         data1 = gen.getCorrelatedData({ r: m.sign * rL, n: 100, extent: 300, outn: 5, outsd: outdir, readjust: true })
-        console.log("Left has outlier");
+        //console.log("Left has outlier");
       } else {
         data1 = gen.getCorrelatedData({ r: m.sign * rL, n: 100, extent: 300, outn: 0 })
       }
       if((data.outH && rR > rL) || (data.outL && rL > rR)) {
         data2 = gen.getCorrelatedData({ r: m.sign * rR, n: 100, extent: 300, outn: 5, outsd: outdir, readjust: true });
-        console.log("Right has outlier");
+        //console.log("Right has outlier");
       } else {
         data2 = gen.getCorrelatedData({ r: m.sign * rR, n: 100, extent: 300, outn: 0 });
       }
@@ -501,7 +501,7 @@
         case "scatterplot":
 	        var boxL = vismethods.getScatterPlot(paramsLeft)
 	          , boxR = vismethods.getScatterPlot(paramsRight);
-          console.log(data1, data2);
+          //console.log(data1, data2);
           // Check if r's were swapped (if the left r value matches rtarget, 
           // there was no switch). Store boxes accordingly.
           m.ct.rtarget_box = (rL === m.ct.rtarget) ? boxL : boxR;
