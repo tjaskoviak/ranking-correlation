@@ -27,7 +27,7 @@ fs.readFile(file, 'utf8', function (err, data) {
   var corrExp;
   var strategy;
   var comments;
-
+  console.log("postId,workerId,rbase,dirFlag,jnd,outH,outL,age,sex,handed,degree,monitor,visExp,corrExp,strategy,comments");
   _.each(data, function(row) {
     if(row.postId)
     {
@@ -42,7 +42,7 @@ fs.readFile(file, 'utf8', function (err, data) {
       corrExp = row.correlation_exp;
       strategy = row.strategy;
       comments = row.comments;
-       + "," + age + "," + sex + "," + handed + "," + degree + "," + monitor + "," + visExp + "," + corrExp + "," + strategy + "," + comments
+      
       if(row.main_0) {
       	rbase = row.main_0.rbase;
       	dirFlag = row.main_0.dirFlag;
